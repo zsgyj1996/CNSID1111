@@ -1,3 +1,3 @@
-from .NSIBF.NSIBF import NSIBF
+from .CNSID.CNSID import CNSID
 
-__all__ = ['NSIBF']
+__all__ = ['CNSID']

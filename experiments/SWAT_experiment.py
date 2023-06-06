@@ -1,5 +1,5 @@
 import numpy as np
-from framework.models import NSIBF
+from framework.models import CNSID
 from framework.preprocessing.data_loader import load_swat_data
 from framework.HPOptimizer.Hyperparameter import UniformIntegerHyperparameter,ConstHyperparameter,\
     UniformFloatHyperparameter
@@ -14,7 +14,7 @@ logging.getLogger('tensorflow').setLevel(logging.ERROR)
 train_df,val_df,test_df,signals = load_swat_data()
 
 seqL = 12
-kf = NSIBF(signals, window_length=seqL, input_range=seqL*3)
+kf = CNSID(signals, window_length=seqL, input_range=seqL*3)
 
 train_df = normalize_and_encode_signals(train_df,signals,scaler='min_max') 
 train_x,train_u,train_y,_ = kf.extract_data(train_df)
@@ -77,14 +77,14 @@ labels[labels>0]=1
 kf.estimate_noise(val_x,val_u,val_y)
  
 z_scores = kf.score_samples(test_x, test_u,reset_hidden_states=True)
-# np.savetxt('../results/SWAT/NSIBF_scores',z_scores)
-# z_scores = np.loadtxt('../results/SWAT/NSIBF_scores')
+# np.savetxt('../results/SWAT/CNSID_scores',z_scores)
+# z_scores = np.loadtxt('../results/SWAT/CNSID_scores')
 recon_scores,pred_scores = kf.score_samples_via_residual_error(test_x,test_u)
 print()
    
 z_scores = np.nan_to_num(z_scores)
 t, th = bf_search(z_scores, labels[1:],start=0,end=np.percentile(z_scores,99.9),step_num=10000,display_freq=50,verbose=False)
-print('NSIBF')
+print('CNSID')
 print('best-f1', t[0])
 print('precision', t[1])
 print('recall', t[2])
@@ -96,7 +96,7 @@ print('FN', t[6])
 print()
  
 t, th = bf_search(recon_scores[1:], labels[1:],start=0,end=np.percentile(recon_scores,99.9),step_num=10000,display_freq=50,verbose=False)
-print('NSIBF-RECON')
+print('CNSID-RECON')
 print('best-f1', t[0])
 print('precision', t[1])
 print('recall', t[2])
@@ -108,7 +108,7 @@ print('FN', t[6])
 print()
  
 t, th = bf_search(pred_scores, labels[1:],start=0,end=np.percentile(pred_scores,99.9),step_num=10000,display_freq=50,verbose=False)
-print('NSIBF-PRED')
+print('CNSID-PRED')
 print('best-f1', t[0])
 print('precision', t[1])
 print('recall', t[2])

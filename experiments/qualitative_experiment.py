@@ -1,6 +1,6 @@
 import numpy as np
 from framework.preprocessing.data_loader import get_simulation_data
-from framework.models import NSIBF
+from framework.models import CNSID
 from sklearn import metrics
 import math
 from framework.preprocessing import normalize_and_encode_signals
@@ -11,7 +11,7 @@ logging.getLogger('tensorflow').setLevel(logging.ERROR)
 train_df,test_df,signals = get_simulation_data()
 
 seqL = 31
-kf = NSIBF(signals,window_length=seqL, input_range=2*seqL)
+kf = CNSID(signals,window_length=seqL, input_range=2*seqL)
 
 
 train_df = normalize_and_encode_signals(train_df,signals,scaler='min_max') 
@@ -63,10 +63,10 @@ mu_x,std_x = np.array(mu_x),np.array(std_x)
 
 T = np.linspace(1,len(true_x),len(true_x))
 plt.plot(T[1000:1300],true_x[1000:1300],linestyle='-',label='Observed measurements')
-plt.plot(T[1000:1300],rec_x[1000:1300],linestyle='-.',label='NSIBF-RECON')
-plt.plot(T[1000:1300],pred_x[1000:1300],linestyle=':',label='NSIBF-PRED')
-plt.plot(T[1000:1300],mu_x[1000:1300],linestyle='--',label='NSIBF mean')
-plt.fill_between(T[1000:1300], mu_x[1000:1300]-std_x[1000:1300], mu_x[1000:1300]+std_x[1000:1300], alpha=0.5,color='y',label='NSIBF one std interval')
+plt.plot(T[1000:1300],rec_x[1000:1300],linestyle='-.',label='CNSID-RECON')
+plt.plot(T[1000:1300],pred_x[1000:1300],linestyle=':',label='CNSID-PRED')
+plt.plot(T[1000:1300],mu_x[1000:1300],linestyle='--',label='CNSID mean')
+plt.fill_between(T[1000:1300], mu_x[1000:1300]-std_x[1000:1300], mu_x[1000:1300]+std_x[1000:1300], alpha=0.5,color='y',label='CNSID one std interval')
 _,_,ymin,ymax = plt.axis()
 anomaly_idx = [i for i in range(1000,1300) if ls[i]==1]
 plt.fill_between(anomaly_idx,ymin,ymax,alpha=0.75,color='grey',label='Anomalous period')
@@ -89,17 +89,17 @@ for j in range(dim):
         plt.plot(T,labels[1:],label='anomaly label',color=colors[j%7])
         ax.xaxis.set_ticklabels([])
     elif j == 1:
-        plt.plot(T,recon_scores[1:],label='NSIBF-RECON',color=colors[j%7])
+        plt.plot(T,recon_scores[1:],label='CNSID-RECON',color=colors[j%7])
         plt.ylabel('residual error')
         ax.xaxis.set_ticklabels([])
     elif j == 2:
-        plt.plot(T,pred_scores,label='NSIBF-PRED',color=colors[j%7])
+        plt.plot(T,pred_scores,label='CNSID-PRED',color=colors[j%7])
         ax.yaxis.set_label_position("right")
         ax.yaxis.tick_right()
         plt.ylabel('residual error')
         ax.xaxis.set_ticklabels([])
     elif j == 3:
-        plt.plot(T,z_scores,label='NSIBF',color=colors[j%7])
+        plt.plot(T,z_scores,label='CNSID',color=colors[j%7])
         plt.ylabel('anomaly score')
     plt.legend()
       
@@ -107,11 +107,11 @@ plt.show()
   
 plt.plot([0,1],[0,1],'k--')
 fpr,tpr,thresholds = metrics.roc_curve(labels[1:],recon_scores[1:],pos_label=1)
-plt.plot(fpr,tpr,label='NSIBF-RECON')
+plt.plot(fpr,tpr,label='CNSID-RECON')
 fpr,tpr,thresholds = metrics.roc_curve(labels[1:],pred_scores,pos_label=1)
-plt.plot(fpr,tpr,label='NSIBF-PRED')
+plt.plot(fpr,tpr,label='CNSID-PRED')
 fpr,tpr,thresholds = metrics.roc_curve(labels[1:],z_scores,pos_label=1)
-plt.plot(fpr,tpr,label='NSIBF')
+plt.plot(fpr,tpr,label='CNSID')
   
 plt.xlabel('False positive rate')
 plt.ylabel('True positive rate')

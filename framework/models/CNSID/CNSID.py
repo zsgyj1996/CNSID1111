@@ -11,14 +11,7 @@ from ...utils.metrics import bf_search
 from scipy.spatial.distance import mahalanobis
 
 
-class NSIBF(BaseModel,DataExtractor):
-    '''
-    Neural system identification and bayesian filtering for anomaly detection.
-    
-    :param signals: the list of signals the model is dealing with
-    :param input_range: the length of input sequence for covariate encoder
-    :param window_length: the number of time points for stacking sensor measurements
-    '''
+class CNSID(BaseModel,DataExtractor):
     def __init__(self, signals, window_length, input_range):
         self.signals = signals
         self.wl = window_length
@@ -140,7 +133,7 @@ class NSIBF(BaseModel,DataExtractor):
     
     def score_samples_via_residual_error(self,x,u):
         """
-        get anomalies scores for samples via NSIBF-RECON and NSIBF-PRED
+        get anomalies scores for samples via CNSID-RECON and CNSID-PRED
         
         :param x: the target variables, i.e., the measurements, matrix of shape = [n_timesteps, n_targets]
         :param u: the covariates, matrix of shape = [n_timesteps, input_range, n_feats]
@@ -351,7 +344,7 @@ class NSIBF(BaseModel,DataExtractor):
         model.compile(optimizer=optimizer, loss=['mse','mse','mse'], loss_weights=self.loss_weights)
 
         if save_best_only:
-            checkpoint_path = tempfile.gettempdir()+'/NSIBF.ckpt'
+            checkpoint_path = tempfile.gettempdir()+'/CNSID.ckpt'
             cp_callback = keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_best_only=True, save_weights_only=True)                          
             model.fit(x, y+[z], batch_size=batch_size, epochs=epochs, validation_split=validation_split, callbacks=[cp_callback], verbose=verbose)
             model.load_weights(checkpoint_path)
@@ -377,7 +370,7 @@ class NSIBF(BaseModel,DataExtractor):
         """
         Score the model based on datasets with uniform negative sampling.
         Better score indicate a higher performance
-        For efficiency, the best f1 score of NSIBF-PRED is used for scoring in this version.
+        For efficiency, the best f1 score of CNSID-PRED is used for scoring in this version.
         """
         
         _,pred_scores = self.score_samples_via_residual_error(neg_x[0],neg_x[1])
@@ -397,10 +390,10 @@ class NSIBF(BaseModel,DataExtractor):
         if model_path is None:
             model_path = tempfile.gettempdir()
         
-        self.estimator.save(model_path+'/NSIBF.h5',save_format='h5')
-        self.f_net.save(model_path+'/NSIBF_f.h5',save_format='h5')
-        self.g_net.save(model_path+'/NSIBF_g.h5',save_format='h5')
-        self.h_net.save(model_path+'/NSIBF_h.h5',save_format='h5')
+        self.estimator.save(model_path+'/CNSID.h5',save_format='h5')
+        self.f_net.save(model_path+'/CNSID_f.h5',save_format='h5')
+        self.g_net.save(model_path+'/CNSID_g.h5',save_format='h5')
+        self.h_net.save(model_path+'/CNSID_h.h5',save_format='h5')
     
     @override
     def load_model(self,model_path=None):
@@ -413,10 +406,10 @@ class NSIBF(BaseModel,DataExtractor):
         """
         if model_path is None:
             model_path = tempfile.gettempdir()
-        self.estimator = keras.models.load_model(model_path+'/NSIBF.h5')
-        self.f_net = keras.models.load_model(model_path+'/NSIBF_f.h5')
-        self.g_net = keras.models.load_model(model_path+'/NSIBF_g.h5')
-        self.h_net = keras.models.load_model(model_path+'/NSIBF_h.h5')
+        self.estimator = keras.models.load_model(model_path+'/CNSID.h5')
+        self.f_net = keras.models.load_model(model_path+'/CNSID_f.h5')
+        self.g_net = keras.models.load_model(model_path+'/CNSID_g.h5')
+        self.h_net = keras.models.load_model(model_path+'/CNSID_h.h5')
         
         return self
     
